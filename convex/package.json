@@ -1,0 +1,14 @@
+{
+  "name": "longview-convex",
+  "private": true,
+  "scripts": {
+    "dev": "convex dev",
+    "deploy": "convex deploy",
+    "migrate": "convex run migrations/index:runAll",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "convex": "^1.17.0",
+    "typescript": "^5.6.0"
+  }
+}
