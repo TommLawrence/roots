@@ -220,6 +220,22 @@ def draft_summary(conn: sqlite3.Connection, actor: str, learner_id: str,
 
 # ---------------------------------------------------------------- approvals / gate
 
+def ensure_human(actor: str, what: str) -> str:
+    """Human-only guard for decision actions. The agent proposes; it never decides.
+
+    Two things count as a human here: a non-empty name, and not the agent
+    (or anything namespaced to it) rubber-stamping itself.
+    """
+    name = (actor or "").strip()
+    if not name:
+        raise ValueError(f"{what} needs a named human - the deciding name cannot be empty")
+    if name == "agent" or name.startswith("agent:"):
+        raise PermissionError(
+            f"refused: {what} is decided by humans only - the agent cannot do it "
+            "itself. The named person approves in the review UI.")
+    return name
+
+
 def request_approval(conn: sqlite3.Connection, actor: str, action: str, payload: dict) -> dict:
     cur = conn.execute(
         "INSERT INTO approvals (action, payload, status, requested_at) VALUES (?,?,'pending',?)",
@@ -235,8 +251,17 @@ def resolve_approval(conn: sqlite3.Connection, actor: str, approval_id: int, dec
                      decided_by: str, note: str | None = None) -> dict:
     if decision not in ("approved", "rejected"):
         raise ValueError("decision must be approved | rejected")
-    if not decided_by or not decided_by.strip():
-        raise ValueError("a named human must approve - decided_by cannot be empty")
+    # Two locks: whoever operates the call must be human, and the name attached
+    # to the decision must be a real person - the agent cannot approve its own
+    # output by passing itself as decided_by. Attempted bypasses are audited.
+    try:
+        ensure_human(actor, f"resolving approval {approval_id}")
+        decided_by = ensure_human(decided_by, f"resolving approval {approval_id}")
+    except (ValueError, PermissionError) as exc:
+        audit(conn, actor or "(none)", "resolve_approval",
+              {"approval_id": approval_id, "decision": decision,
+               "decided_by": decided_by}, {"refused": str(exc)})
+        raise
     row = conn.execute("SELECT * FROM approvals WHERE id=?", (approval_id,)).fetchone()
     if not row:
         raise NotFoundError(f"unknown approval {approval_id}")
@@ -273,6 +298,42 @@ def share_summary(conn: sqlite3.Connection, actor: str, summary_id: int,
     result = {"summary_id": summary_id, "status": "shared", "channel": channel,
               "approved_by": approval["decided_by"]}
     audit(conn, actor, "share_summary", {"summary_id": summary_id, "channel": channel}, result)
+    return result
+
+
+# ---------------------------------------------------------------- flag decisions
+
+def resolve_flag(conn: sqlite3.Connection, actor: str, flag_id: int, decision: str,
+                 decided_by: str) -> dict:
+    """Teacher decision on a proposed pattern: raise it (act on it) or dismiss it.
+
+    Human-only by the same rule as the share gate: flags are proposed by the
+    agent and decided by a named person - the agent never resolves its own
+    flags. Decisions land in the audit log with the decider's name.
+    """
+    if decision not in ("raised", "dismissed"):
+        raise ValueError("decision must be raised | dismissed")
+    try:
+        ensure_human(actor, f"resolving flag {flag_id}")
+        decided_by = ensure_human(decided_by, f"resolving flag {flag_id}")
+    except (ValueError, PermissionError) as exc:
+        audit(conn, actor or "(none)", "resolve_flag",
+              {"flag_id": flag_id, "decision": decision,
+               "decided_by": decided_by}, {"refused": str(exc)})
+        raise
+    row = conn.execute("SELECT * FROM flags WHERE id=?", (flag_id,)).fetchone()
+    if not row:
+        raise NotFoundError(f"unknown flag {flag_id}")
+    if row["status"] != "pending_review":
+        raise ValueError(f"flag {flag_id} already {row['status']}")
+    conn.execute(
+        "UPDATE flags SET status=?, decided_by=?, decided_at=? WHERE id=?",
+        (decision, decided_by, _now(), flag_id),
+    )
+    conn.commit()
+    result = {"flag_id": flag_id, "status": decision, "decided_by": decided_by}
+    audit(conn, actor, "resolve_flag",
+          {"flag_id": flag_id, "decision": decision, "decided_by": decided_by}, result)
     return result
 
 

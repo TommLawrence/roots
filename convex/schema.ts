@@ -57,7 +57,8 @@ export default defineSchema({
     createdBy: v.string(),
     decidedBy: v.optional(v.string()),
     decidedAt: v.optional(v.string()),
-  }).index("by_status", ["status"]),
+  }).index("by_status", ["status"])
+    .index("by_learner", ["learnerCode"]),
 
   summaries: defineTable({
     learnerCode: v.string(),

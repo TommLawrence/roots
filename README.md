@@ -73,9 +73,9 @@ template drafter so the pipeline is always demonstrable.
 | `longview_mcp/` | **Our MCP server.** Tool logic lives in `core.py` (pure stdlib), FastMCP wrapper in `server.py` |
 | `agent/` | LangGraph agent + CLI runner (`python -m agent.run --learner L003`) |
 | `borrowed/` | The MCP server we did **not** write (official sqlite server) and why we borrow it |
-| `ui/` | Teacher review screen — the human gate, visible |
+| `ui/` | Teacher review UI (FastAPI) — dashboard, cited learner profiles, the share gate, evidence drill-down, audit log. The human gate, visible |
 | `evals/` | 10+ test tasks, runner, honest pass/fail report incl. one known failure |
-| `convex/` | Production backend schema + migrations (Convex), kept in lockstep with the prototype schema |
+| `convex/` | Production backend (Convex): schema, **write functions that enforce the citation rule + human gate**, migrations, and an `/api/v1/*` HTTP bridge for the Python agent |
 | `tests/` | Citation integrity, pattern detection, approval gate, audit completeness |
 | `docs/` | Teacher interview notes (classroom fit), demo video script |
 
