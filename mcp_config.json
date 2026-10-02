@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "longview": {
+      "command": "python",
+      "args": ["-m", "longview_mcp.server"],
+      "cwd": ".",
+      "_note": "Ours: 9 domain tools (ingest_result, update_profile, flag_pattern, get_learner_profile, analyse_learner, draft_summary, request_approval, resolve_approval, share_summary). Writes are gated, cited and audited."
+    },
+    "sqlite": {
+      "command": "uvx",
+      "args": ["mcp-server-sqlite", "--db-path", "data/longview.db"],
+      "_note": "Official reference server (borrowed). Read-only usage: exploratory SQL over raw history."
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "records_inbox/"],
+      "_note": "Official reference server (borrowed). Sandboxed reads of the school's records inbox: exports, scans, remark books."
+    }
+  }
+}

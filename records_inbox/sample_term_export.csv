@@ -1,0 +1,4 @@
+learner_id,kind,subject,skill,term,value,detail,source_ref
+L003,quiz,mathematics,fractions,Y4T2,52.5,term 2 exam fractions strand,term_export_2026t2.csv
+L003,quiz,mathematics,fractions,Y4T3,47.0,term 3 exam fractions strand,term_export_2026t3.csv
+L003,quiz,mathematics,fractions,Y4T3,44.5,fractions follow-up quiz,term_export_2026t3.csv

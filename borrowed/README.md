@@ -1,4 +1,8 @@
-# The MCP server we did NOT write
+# The MCP servers we did NOT write
+
+Two official reference servers, borrowed for exactly one reason each:
+
+## 1. `sqlite` — generic reads over raw history
 
 **Server:** official reference `sqlite` MCP server
 (`uvx mcp-server-sqlite --db-path data/longview.db`, or the Node equivalent
@@ -10,20 +14,37 @@ the official server gives the agent ad-hoc query power over the raw history
 without us adding a hand-rolled query tool (and its edge cases) to our own
 server's attack surface.
 
-**Boundary between the two servers (kept deliberately clean):**
+## 2. `filesystem` — sandboxed reads of the records inbox
+
+**Server:** official reference `filesystem` MCP server
+(`npx -y @modelcontextprotocol/server-filesystem records_inbox/`).
+
+**Why borrow instead of build:** schools' incoming records are files (term-result
+CSV exports, scanned report cards, remark book dumps). Sandboxing file access to
+one directory, with path-validation we do not have to maintain, is a solved
+problem — the official server gives the agent `list_directory` / `read_text_file`
+over `records_inbox/` only. Our own server never gains a file-read tool, so a
+bug in our code cannot read anything outside the inbox.
+
+The agent's `--from-inbox` run (`agent/inbox.py`) uses this server as its primary
+transport; if Node is unavailable it falls back to a direct read-only listing and
+labels the trace accordingly.
+
+## Boundary between the servers (kept deliberately clean)
 
 | Server | Role | Writes? |
 |---|---|---|
 | `longview_mcp` (ours) | Domain tools: ingest, cited profile updates, pattern flags, summaries, approvals, share gate | yes - but gated and audited |
 | official `sqlite` (borrowed) | Generic read/exploratory SQL over raw history | no (read-only usage) |
+| official `filesystem` (borrowed) | Sandboxed reads of `records_inbox/` (exports, scans, remark books) | no (read-only usage) |
 
 A stranger could reuse either half without the other. Our tool logic
 (`longview_mcp/core.py`) is stdlib-only and has no dependency on the agent
 framework or the borrowed server.
 
-## Wiring it into an MCP client
+## Wiring all three into an MCP client
 
-Add both servers to any MCP client config:
+The repo ships a ready `mcp_config.json` (same shape, plus notes). Add all three servers to any MCP client config:
 
 ```json
 {
@@ -36,6 +57,10 @@ Add both servers to any MCP client config:
     "sqlite": {
       "command": "uvx",
       "args": ["mcp-server-sqlite", "--db-path", "data/longview.db"]
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "records_inbox/"]
     }
   }
 }

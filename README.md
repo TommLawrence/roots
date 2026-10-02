@@ -24,8 +24,10 @@ unsourced claims. An unsourced label on a child is worse than no label at all.
 raw records (SQLite, messy on purpose)
         │
         ▼
-Longview MCP server (ours: ingest / update_profile / flag_pattern / draft_summary / share_summary)
+Longview MCP server (ours: 9 domain tools — ingest, cited profile updates,
+        flag_pattern, draft_summary, approvals, share gate)
         +   official sqlite MCP server (borrowed: generic read-only SQL)  ← why: audited, standard, zero code to maintain
+        +   official filesystem MCP server (borrowed: sandboxed reads of records_inbox/)  ← why: school files stay outside our attack surface
         │
         ▼
 LangGraph agent (plan → ingest → analyse → propose → HUMAN GATE → draft → finalize)
@@ -71,8 +73,10 @@ template drafter so the pipeline is always demonstrable.
 |---|---|
 | `datagen/` | Synthetic cohort generator — realistically messy (missing rows, late entries, typos, attendance gaps) |
 | `longview_mcp/` | **Our MCP server.** Tool logic lives in `core.py` (pure stdlib), FastMCP wrapper in `server.py` |
-| `agent/` | LangGraph agent + CLI runner (`python -m agent.run --learner L003`) |
-| `borrowed/` | The MCP server we did **not** write (official sqlite server) and why we borrow it |
+| `agent/` | LangGraph agent + CLI runner (`python -m agent.run --learner L003`; `--from-inbox` picks up school exports) |
+| `records_inbox/` | Where the school drops term exports / scans; read **only** via the borrowed filesystem MCP server |
+| `mcp_config.json` | Ready-made client config wiring all three MCP servers (ours + 2 borrowed) |
+| `borrowed/` | The two MCP servers we did **not** write (official sqlite + filesystem) and why we borrow them |
 | `ui/` | Teacher review UI (FastAPI) — dashboard, cited learner profiles, the share gate, evidence drill-down, audit log. The human gate, visible |
 | `evals/` | 10+ test tasks, runner, honest pass/fail report incl. one known failure |
 | `convex/` | Production backend (Convex): schema, **write functions that enforce the citation rule + human gate**, migrations, and an `/api/v1/*` HTTP bridge for the Python agent |
