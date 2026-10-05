@@ -54,7 +54,7 @@
   .spark { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
   .spark .labels { font-size: 12px; color: #666; max-width: 320px; }
   footer { max-width: 980px; margin: 30px auto; padding: 0 16px; color: #8a8377; font-size: 12px; }
-</style></head><body><div style="background:#1e293b;color:#fbbf24;padding:8px 16px;font:13px/1.4 system-ui,sans-serif;text-align:center;">Offline snapshot of the Longview teacher-review UI, generated 2026-10-01. Action buttons are disabled here - run <code>make ui</code> inside long-view/ for the live version.</div>
+</style></head><body><div style="background:#1e293b;color:#fbbf24;padding:8px 16px;font:13px/1.4 system-ui,sans-serif;text-align:center;">Offline snapshot of the Longview teacher-review UI, generated 2026-10-05. Action buttons are disabled here - run <code>make ui</code> inside long-view/ for the live version.</div>
 <header><div class="bar">
   <span class="brand">Longview</span>
   <nav><a href="index.html" class="on">Dashboard</a> <a href="learners.html">Learners</a>
@@ -64,26 +64,39 @@
 
   
   <h2>This week</h2>
-  <div class="grid"><div class="kpi"><b>80</b><span>learners</span></div><div class="kpi"><b>46574</b><span>evidence events</span></div><div class="kpi"><b>1</b><span>profile entries</span></div><div class="kpi"><b>1</b><span>pending flags</span></div><div class="kpi"><b>1</b><span>pending gates</span></div><div class="kpi"><b>0</b><span>shared</span></div><div class="kpi"><b>5</b><span>audit rows</span></div></div>
-  <h2>Flags awaiting review (1)</h2>
+  <div class="grid"><div class="kpi"><b>80</b><span>learners</span></div><div class="kpi"><b>46578</b><span>evidence events</span></div><div class="kpi"><b>2</b><span>profile entries</span></div><div class="kpi"><b>2</b><span>pending flags</span></div><div class="kpi"><b>2</b><span>pending gates</span></div><div class="kpi"><b>0</b><span>shared</span></div><div class="kpi"><b>13</b><span>audit rows</span></div></div>
+  <h2>Flags awaiting review (2)</h2>
   <p class="muted">Patterns the agent noticed in the records. Discuss with the learner
   and guardian before acting - the agent only proposes.</p>
   
       <div class="card">
+        <div class="row"><a href="learner_L003.html"><b>Laila P.</b></a>
+          <span class="pill pending">sustained_strength</span>
+          <span class="muted">2026-10-05T11:02</span></div>
+        <p>geometry averaged 86.5 across 12 terms (Y1T1 to Y4T3).</p>
+        <div><a class="chip" href="evidence_1212.html" title=" | ">event 1212</a><a class="chip" href="evidence_1213.html" title=" | ">event 1213</a><a class="chip" href="evidence_1214.html" title=" | ">event 1214</a><a class="chip" href="evidence_1215.html" title=" | ">event 1215</a><a class="chip" href="evidence_1216.html" title=" | ">event 1216</a><a class="chip" href="evidence_1217.html" title=" | ">event 1217</a></div>
+        <div style="border:1px dashed #94a3b8;background:#f8fafc;color:#475569;padding:10px 14px;border-radius:8px;font:14px/1.5 system-ui,sans-serif;">This action (approve / reject / share / resolve) is disabled in the offline snapshot. In the live UI it asks you to type your name first, and every decision is written to the audit trail.</div>
+      </div>
+      <div class="card">
         <div class="row"><a href="learner_L002.html"><b>Baraka V.</b></a>
           <span class="pill pending">decline</span>
-          <span class="muted">2026-10-01T09:03</span></div>
+          <span class="muted">2026-10-05T11:02</span></div>
         <p>reading mean fell from 81.0 (Y2T1) to 65.8 (Y2T3), a 15.2-point drop over 3 terms.</p>
         <div><a class="chip" href="evidence_777.html" title=" | ">event 777</a><a class="chip" href="evidence_778.html" title=" | ">event 778</a><a class="chip" href="evidence_779.html" title=" | ">event 779</a><a class="chip" href="evidence_780.html" title=" | ">event 780</a><a class="chip" href="evidence_781.html" title=" | ">event 781</a><a class="chip" href="evidence_782.html" title=" | ">event 782</a></div>
         <div style="border:1px dashed #94a3b8;background:#f8fafc;color:#475569;padding:10px 14px;border-radius:8px;font:14px/1.5 system-ui,sans-serif;">This action (approve / reject / share / resolve) is disabled in the offline snapshot. In the live UI it asks you to type your name first, and every decision is written to the audit trail.</div>
       </div>
-  <h2>Sharing gate (1 pending)</h2>
+  <h2>Sharing gate (2 pending)</h2>
   <p class="muted">Nothing leaves the classroom unless you open the gate and type your name.</p>
   
-      <div class="card"><div class="row"><a href="/gate/1"><b>Baraka V.</b></a> <span class="pill pending">pending</span><span class="muted">approval #1</span></div>
+      <div class="card"><div class="row"><a href="gate_2.html"><b>Laila P.</b></a> <span class="pill pending">pending</span><span class="muted">approval #2</span></div>
+        <pre class="summary">Draft for Laila P.'s guardian - please use this to open a conversation with Laila P.'s teacher. This is a summary of recorded work, not a verdict on the child.
+- Kept doing well in geometry: geometry averaged 86.5 across...</pre>
+        <div class="row"><a href="gate_2.html">Open the gate - read citations, then decide</a></div>
+      </div>
+      <div class="card"><div class="row"><a href="gate_1.html"><b>Baraka V.</b></a> <span class="pill pending">pending</span><span class="muted">approval #1</span></div>
         <pre class="summary">Draft for Baraka V.'s guardian - please use this to open a conversation with Baraka V.'s teacher. This is a summary of recorded work, not a verdict on the child.
 - reading has been slipping: reading mean fell from 81.0 (...</pre>
-        <div class="row"><a href="/gate/1">Open the gate - read citations, then decide</a></div>
+        <div class="row"><a href="gate_1.html">Open the gate - read citations, then decide</a></div>
       </div>
   <h2>Recently shared</h2>
   <ul><span class="muted">Nothing shared yet.</span></ul>

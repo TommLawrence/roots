@@ -1,5 +1,0 @@
-agent
-datagen
-evals
-longview_mcp
-ui

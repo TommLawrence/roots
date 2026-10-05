@@ -1,5 +1,0 @@
-[console_scripts]
-longview-agent = agent.run:main
-longview-datagen = datagen.generate:main
-longview-evals = evals.run_evals:main
-longview-ui = ui.app:main

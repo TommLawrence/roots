@@ -1,5 +1,5 @@
 Longview - teacher review UI (offline snapshot)
-Generated 2026-10-01 from the real demo database (80 learners, 12 terms).
+Generated 2026-10-05 from the real demo database (80 learners, 12 terms).
 
 Open index.html in any browser. Start here:
   index.html          -> dashboard: pending share gate + open flag
