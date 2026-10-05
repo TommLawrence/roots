@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Longview - Baraka V.</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; margin: 0; background: #f6f4ef; color: #1c1c1c; }
+  header { background: #7a3b12; color: #fff; padding: 0 24px; }
+  header .bar { max-width: 980px; margin: 0 auto; display: flex; align-items: center;
+                gap: 22px; height: 54px; }
+  header .brand { font-weight: 700; font-size: 18px; letter-spacing: .2px; }
+  header nav a { color: #f3e3cf; text-decoration: none; font-size: 14px; padding: 6px 2px;
+                 border-bottom: 2px solid transparent; }
+  header nav a.on { color: #fff; border-bottom-color: #f3b562; }
+  main { max-width: 980px; margin: 22px auto 60px; padding: 0 16px; }
+  h2 { border-bottom: 2px solid #e5d9c3; padding-bottom: 6px; margin-top: 34px; font-size: 18px; }
+  .card { background: #fff; border: 1px solid #ddd; border-radius: 10px;
+          padding: 14px 18px; margin-bottom: 14px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 12px; margin-bottom: 8px; }
+  .kpi { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 12px 16px; }
+  .kpi b { font-size: 26px; display: block; }
+  .kpi span { color: #777; font-size: 12px; }
+  .pill { background: #eee4d2; padding: 2px 10px; border-radius: 99px; font-size: 12px;
+          white-space: nowrap; }
+  .pill.pending { background: #fde68a; } .pill.approved, .pill.raised { background: #bbf7d0; }
+  .pill.rejected, .pill.dismissed { background: #fecaca; }
+  .pill.shared { background: #bfdbfe; } .pill.draft { background: #e9d5ff; }
+  .pill.strength { background: #bbf7d0; } .pill.weakness { background: #fecaca; }
+  .muted { color: #777; font-size: 12px; }
+  pre.summary { white-space: pre-wrap; background: #faf8f3; padding: 12px;
+                border-radius: 8px; font-family: inherit; border: 1px solid #eee2cc; }
+  input { padding: 7px 9px; border: 1px solid #ccc; border-radius: 6px; }
+  button { padding: 7px 14px; border: 0; border-radius: 6px; cursor: pointer; }
+  button.ok { background: #166534; color: #fff; }
+  button.bad { background: #991b1b; color: #fff; }
+  button.flat { background: #eee4d2; color: #4a2c12; }
+  .error { background: #fee2e2; border: 1px solid #fca5a5; padding: 10px 14px;
+           border-radius: 8px; margin: 14px 0; }
+  .flash { background: #dcfce7; border: 1px solid #86efac; padding: 10px 14px;
+           border-radius: 8px; margin: 14px 0; }
+  table { border-collapse: collapse; width: 100%; background: #fff; border-radius: 10px;
+          overflow: hidden; border: 1px solid #ddd; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #eee;
+           font-size: 13px; vertical-align: top; }
+  th { background: #f0e9dc; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; }
+  tr:last-child td { border-bottom: 0; }
+  a { color: #9a4a12; }
+  .chip { display: inline-block; background: #faf3e4; border: 1px solid #e8d9b8;
+          border-radius: 6px; padding: 2px 8px; margin: 2px 4px 2px 0; font-size: 12px;
+          font-family: ui-monospace, monospace; text-decoration: none; color: #5b3a10; }
+  .chip:hover { border-color: #7a3b12; }
+  .spark { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .spark .labels { font-size: 12px; color: #666; max-width: 320px; }
+  footer { max-width: 980px; margin: 30px auto; padding: 0 16px; color: #8a8377; font-size: 12px; }
+</style></head><body><div style="background:#1e293b;color:#fbbf24;padding:8px 16px;font:13px/1.4 system-ui,sans-serif;text-align:center;">Offline snapshot of the Longview teacher-review UI, generated 2026-10-01. Action buttons are disabled here - run <code>make ui</code> inside long-view/ for the live version.</div>
+<header><div class="bar">
+  <span class="brand">Longview</span>
+  <nav><a href="index.html">Dashboard</a> <a href="learners.html" class="on">Learners</a>
+       <a href="audit.html">Audit log</a></nav>
+</div></header>
+<main>
+
+  
+  <h2>Baraka V. <span class="muted">(L002 · guardian:
+  Mama Baraka)</span></h2>
+  <h2>Patterns over time</h2>
+  <div class="card"><div class="spark"><b>english / reading</b><svg width="190" height="48" role="img" aria-label="trend"><title>Y1T1: 74.2 · Y1T2: 75.4 · Y1T3: 76.2 · Y2T1: 81.0 · Y2T2: 70.3 · Y2T3: 65.8 · Y3T1: 57.8 · Y3T2: 56.2 · Y3T3: 54.4 · Y4T1: 52.4 · Y4T2: 44.8 · Y4T3: 41.3</title><polyline points="14.0,17.4 28.7,16.8 43.5,16.4 58.2,14.0 72.9,19.4 87.6,21.7 102.4,25.7 117.1,26.5 131.8,27.4 146.5,28.4 161.3,32.2 176.0,34.0" fill="none" stroke="#7a3b12" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="14.0" cy="17.4" r="2.6" fill="#7a3b12"/><circle cx="28.7" cy="16.8" r="2.6" fill="#7a3b12"/><circle cx="43.5" cy="16.4" r="2.6" fill="#7a3b12"/><circle cx="58.2" cy="14.0" r="2.6" fill="#7a3b12"/><circle cx="72.9" cy="19.4" r="2.6" fill="#7a3b12"/><circle cx="87.6" cy="21.7" r="2.6" fill="#7a3b12"/><circle cx="102.4" cy="25.7" r="2.6" fill="#7a3b12"/><circle cx="117.1" cy="26.5" r="2.6" fill="#7a3b12"/><circle cx="131.8" cy="27.4" r="2.6" fill="#7a3b12"/><circle cx="146.5" cy="28.4" r="2.6" fill="#7a3b12"/><circle cx="161.3" cy="32.2" r="2.6" fill="#7a3b12"/><circle cx="176.0" cy="34.0" r="2.6" fill="#7a3b12"/></svg><span class="labels"><b>41.3</b> now · 74.2 at Y1T1 · Y4T2 → Y4T3</span><span class="muted">10 records in latest term</span></div></div><div class="card"><div class="spark"><b>english / writing</b><svg width="190" height="48" role="img" aria-label="trend"><title>Y1T1: 70.1 · Y1T2: 66.8 · Y1T3: 73.9 · Y2T1: 73.0 · Y2T2: 73.5 · Y2T3: 69.3 · Y3T1: 69.4 · Y3T2: 67.3 · Y3T3: 73.6 · Y4T1: 72.9 · Y4T2: 72.5 · Y4T3: 68.9</title><polyline points="14.0,24.7 28.7,34.0 43.5,14.0 58.2,16.5 72.9,15.1 87.6,27.0 102.4,26.7 117.1,32.6 131.8,14.8 146.5,16.8 161.3,17.9 176.0,28.1" fill="none" stroke="#7a3b12" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="14.0" cy="24.7" r="2.6" fill="#7a3b12"/><circle cx="28.7" cy="34.0" r="2.6" fill="#7a3b12"/><circle cx="43.5" cy="14.0" r="2.6" fill="#7a3b12"/><circle cx="58.2" cy="16.5" r="2.6" fill="#7a3b12"/><circle cx="72.9" cy="15.1" r="2.6" fill="#7a3b12"/><circle cx="87.6" cy="27.0" r="2.6" fill="#7a3b12"/><circle cx="102.4" cy="26.7" r="2.6" fill="#7a3b12"/><circle cx="117.1" cy="32.6" r="2.6" fill="#7a3b12"/><circle cx="131.8" cy="14.8" r="2.6" fill="#7a3b12"/><circle cx="146.5" cy="16.8" r="2.6" fill="#7a3b12"/><circle cx="161.3" cy="17.9" r="2.6" fill="#7a3b12"/><circle cx="176.0" cy="28.1" r="2.6" fill="#7a3b12"/></svg><span class="labels"><b>68.9</b> now · 70.1 at Y1T1 · Y4T2 → Y4T3</span><span class="muted">7 records in latest term</span></div></div><div class="card"><div class="spark"><b>math / arithmetic</b><svg width="190" height="48" role="img" aria-label="trend"><title>Y1T1: 73.5 · Y1T2: 75.2 · Y1T3: 73.4 · Y2T1: 72.6 · Y2T2: 75.1 · Y2T3: 70.9 · Y3T1: 68.5 · Y3T2: 76.0 · Y3T3: 73.7 · Y4T1: 67.6 · Y4T2: 72.1 · Y4T3: 72.7</title><polyline points="14.0,20.0 28.7,15.9 43.5,20.2 58.2,22.1 72.9,16.1 87.6,26.1 102.4,31.9 117.1,14.0 131.8,19.5 146.5,34.0 161.3,23.3 176.0,21.9" fill="none" stroke="#7a3b12" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="14.0" cy="20.0" r="2.6" fill="#7a3b12"/><circle cx="28.7" cy="15.9" r="2.6" fill="#7a3b12"/><circle cx="43.5" cy="20.2" r="2.6" fill="#7a3b12"/><circle cx="58.2" cy="22.1" r="2.6" fill="#7a3b12"/><circle cx="72.9" cy="16.1" r="2.6" fill="#7a3b12"/><circle cx="87.6" cy="26.1" r="2.6" fill="#7a3b12"/><circle cx="102.4" cy="31.9" r="2.6" fill="#7a3b12"/><circle cx="117.1" cy="14.0" r="2.6" fill="#7a3b12"/><circle cx="131.8" cy="19.5" r="2.6" fill="#7a3b12"/><circle cx="146.5" cy="34.0" r="2.6" fill="#7a3b12"/><circle cx="161.3" cy="23.3" r="2.6" fill="#7a3b12"/><circle cx="176.0" cy="21.9" r="2.6" fill="#7a3b12"/></svg><span class="labels"><b>72.7</b> now · 73.5 at Y1T1 · Y4T2 → Y4T3</span><span class="muted">7 records in latest term</span></div></div><div class="card"><div class="spark"><b>math / geometry</b><svg width="190" height="48" role="img" aria-label="trend"><title>Y1T1: 79.0 · Y1T2: 72.1 · Y1T3: 70.4 · Y2T1: 66.8 · Y2T2: 68.5 · Y2T3: 70.0 · Y3T1: 73.2 · Y3T2: 71.3 · Y3T3: 74.3 · Y4T1: 70.4 · Y4T2: 69.6 · Y4T3: 69.3</title><polyline points="14.0,14.0 28.7,25.3 43.5,28.1 58.2,34.0 72.9,31.2 87.6,28.8 102.4,23.5 117.1,26.6 131.8,21.7 146.5,28.1 161.3,29.4 176.0,29.9" fill="none" stroke="#7a3b12" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="14.0" cy="14.0" r="2.6" fill="#7a3b12"/><circle cx="28.7" cy="25.3" r="2.6" fill="#7a3b12"/><circle cx="43.5" cy="28.1" r="2.6" fill="#7a3b12"/><circle cx="58.2" cy="34.0" r="2.6" fill="#7a3b12"/><circle cx="72.9" cy="31.2" r="2.6" fill="#7a3b12"/><circle cx="87.6" cy="28.8" r="2.6" fill="#7a3b12"/><circle cx="102.4" cy="23.5" r="2.6" fill="#7a3b12"/><circle cx="117.1" cy="26.6" r="2.6" fill="#7a3b12"/><circle cx="131.8" cy="21.7" r="2.6" fill="#7a3b12"/><circle cx="146.5" cy="28.1" r="2.6" fill="#7a3b12"/><circle cx="161.3" cy="29.4" r="2.6" fill="#7a3b12"/><circle cx="176.0" cy="29.9" r="2.6" fill="#7a3b12"/></svg><span class="labels"><b>69.3</b> now · 79.0 at Y1T1 · Y4T2 → Y4T3</span><span class="muted">9 records in latest term</span></div></div><div class="card"><div class="spark"><b>science / reasoning</b><svg width="190" height="48" role="img" aria-label="trend"><title>Y1T1: 71.2 · Y1T2: 69.2 · Y1T3: 64.6 · Y2T1: 69.9 · Y2T2: 70.8 · Y2T3: 69.8 · Y3T1: 69.6 · Y3T2: 74.9 · Y3T3: 70.2 · Y4T1: 77.3 · Y4T2: 62.1 · Y4T3: 72.6</title><polyline points="14.0,22.0 28.7,24.7 43.5,30.7 58.2,23.7 72.9,22.6 87.6,23.9 102.4,24.1 117.1,17.2 131.8,23.3 146.5,14.0 161.3,34.0 176.0,20.2" fill="none" stroke="#7a3b12" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="14.0" cy="22.0" r="2.6" fill="#7a3b12"/><circle cx="28.7" cy="24.7" r="2.6" fill="#7a3b12"/><circle cx="43.5" cy="30.7" r="2.6" fill="#7a3b12"/><circle cx="58.2" cy="23.7" r="2.6" fill="#7a3b12"/><circle cx="72.9" cy="22.6" r="2.6" fill="#7a3b12"/><circle cx="87.6" cy="23.9" r="2.6" fill="#7a3b12"/><circle cx="102.4" cy="24.1" r="2.6" fill="#7a3b12"/><circle cx="117.1" cy="17.2" r="2.6" fill="#7a3b12"/><circle cx="131.8" cy="23.3" r="2.6" fill="#7a3b12"/><circle cx="146.5" cy="14.0" r="2.6" fill="#7a3b12"/><circle cx="161.3" cy="34.0" r="2.6" fill="#7a3b12"/><circle cx="176.0" cy="20.2" r="2.6" fill="#7a3b12"/></svg><span class="labels"><b>72.6</b> now · 71.2 at Y1T1 · Y4T2 → Y4T3</span><span class="muted">9 records in latest term</span></div></div><div class="card"><div class="spark"><b>attendance</b><svg width="190" height="48" role="img" aria-label="trend"><title>Y1T1: 94% · Y1T2: 96% · Y1T3: 94% · Y2T1: 95% · Y2T2: 95% · Y2T3: 94% · Y3T1: 94% · Y3T2: 94% · Y3T3: 95% · Y4T1: 95% · Y4T2: 95% · Y4T3: 95%</title><polyline points="14.0,34.0 28.7,14.0 43.5,34.0 58.2,24.0 72.9,24.0 87.6,34.0 102.4,34.0 117.1,34.0 131.8,24.0 146.5,24.0 161.3,24.0 176.0,24.0" fill="none" stroke="#7a3b12" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="14.0" cy="34.0" r="2.6" fill="#7a3b12"/><circle cx="28.7" cy="14.0" r="2.6" fill="#7a3b12"/><circle cx="43.5" cy="34.0" r="2.6" fill="#7a3b12"/><circle cx="58.2" cy="24.0" r="2.6" fill="#7a3b12"/><circle cx="72.9" cy="24.0" r="2.6" fill="#7a3b12"/><circle cx="87.6" cy="34.0" r="2.6" fill="#7a3b12"/><circle cx="102.4" cy="34.0" r="2.6" fill="#7a3b12"/><circle cx="117.1" cy="34.0" r="2.6" fill="#7a3b12"/><circle cx="131.8" cy="24.0" r="2.6" fill="#7a3b12"/><circle cx="146.5" cy="24.0" r="2.6" fill="#7a3b12"/><circle cx="161.3" cy="24.0" r="2.6" fill="#7a3b12"/><circle cx="176.0" cy="24.0" r="2.6" fill="#7a3b12"/></svg><span class="labels"><b>95%</b> now · 94% at Y1T1 · Y4T2 → Y4T3</span><span class="muted">mean attendance per term</span></div></div>
+  <h2>Cited profile (1)</h2>
+  <p class="muted">Every claim carries the records it came from. No entry, no label.</p>
+  
+      <div class="card">
+        <div class="row"><span class="pill weakness">weakness</span>
+          <span class="muted">added by agent
+          </span></div>
+        <p>reading mean fell from 81.0 (Y2T1) to 65.8 (Y2T3), a 15.2-point drop over 3 terms.</p>
+        <div><a class="chip" href="evidence_777.html" title="quiz | Y2T1">quiz:Y2T1:english:reading:q1 = 87.1</a><a class="chip" href="evidence_778.html" title="quiz | Y2T1">quiz:Y2T1:english:reading:q3 = 87.3</a><a class="chip" href="evidence_779.html" title="quiz | Y2T1">quiz:Y2T1:english:reading:q4 = 84.5</a><a class="chip" href="evidence_780.html" title="quiz | Y2T1">quiz:Y2T1:english:reading:q5 = 73.6</a><a class="chip" href="evidence_781.html" title="assignment | Y2T1">assignment:Y2T1:english:reading:a1 = 88.9</a><a class="chip" href="evidence_782.html" title="assignment | Y2T1">assignment:Y2T1:english:reading:a2 = 75.8</a><a class="chip" href="evidence_783.html" title="assignment | Y2T1">assignment:Y2T1:english:reading:a3 = 69.9</a><a class="chip" href="evidence_823.html" title="quiz | Y2T2">quiz:Y2T2:english:reading:q1 = 67.6</a><a class="chip" href="evidence_824.html" title="quiz | Y2T2">quiz:Y2T2:english:reading:q2 = 78.5</a><a class="chip" href="evidence_825.html" title="quiz | Y2T2">quiz:Y2T2:english:reading:q3 = 69</a><a class="chip" href="evidence_826.html" title="quiz | Y2T2">quiz:Y2T2:english:reading:q4 = 84.4</a><a class="chip" href="evidence_827.html" title="quiz | Y2T2">quiz:Y2T2:english:reading:q5 = 62.8</a><a class="chip" href="evidence_828.html" title="assignment | Y2T2">assignment:Y2T2:english:reading:a1 = 59.4</a><a class="chip" href="evidence_873.html" title="quiz | Y2T3">quiz:Y2T3:english:reading:q1 = 73.7</a><a class="chip" href="evidence_874.html" title="quiz | Y2T3">quiz:Y2T3:english:reading:q2 = 79.2</a><a class="chip" href="evidence_875.html" title="quiz | Y2T3">quiz:Y2T3:english:reading:q3 = 62.7</a><a class="chip" href="evidence_876.html" title="quiz | Y2T3">quiz:Y2T3:english:reading:q4 = 56.2</a><a class="chip" href="evidence_877.html" title="quiz | Y2T3">quiz:Y2T3:english:reading:q5 = 66.3</a><a class="chip" href="evidence_878.html" title="quiz | Y2T3">quiz:Y2T3:english:reading:q6 = 58.6</a><a class="chip" href="evidence_879.html" title="assignment | Y2T3">assignment:Y2T3:english:reading:a1 = 74.9</a><a class="chip" href="evidence_880.html" title="assignment | Y2T3">assignment:Y2T3:english:reading:a2 = 65.3</a><a class="chip" href="evidence_881.html" title="assignment | Y2T3">assignment:Y2T3:english:reading:a3 = 55.6</a></div>
+      </div>
+  <h2>Flags (1)</h2>
+  
+      <div class="card">
+        <div class="row"><span class="pill pending">decline</span>
+          <span class="muted">2026-10-01T09:03</span></div>
+        <p>reading mean fell from 81.0 (Y2T1) to 65.8 (Y2T3), a 15.2-point drop over 3 terms.</p>
+        <div style="border:1px dashed #94a3b8;background:#f8fafc;color:#475569;padding:10px 14px;border-radius:8px;font:14px/1.5 system-ui,sans-serif;">This action (approve / reject / share / resolve) is disabled in the offline snapshot. In the live UI it asks you to type your name first, and every decision is written to the audit trail.</div>
+      </div>
+  <h2>Summaries (1)</h2>
+  
+      <div class="card">
+        <div class="row"><span class="pill draft">draft</span>
+          <span class="muted">summary #1 · 2026-10-01T09:03
+          · drafted by agent</span></div>
+        <pre class="summary">Draft for Baraka V.'s guardian - please use this to open a conversation with Baraka V.'s teacher. This is a summary of recorded work, not a verdict on the child.
+- reading has been slipping: reading mean fell from 81.0 (Y2T1) to 65.8 (Y2T3), a 15.2-point drop over 3 terms. The teacher would like to discuss what might help.
+Every point above comes from recorded quizzes, assignments, or the register - ask the teacher to see them.</pre>
+        <div class="row"><a href="/gate/1">open gate #1</a></div>
+      </div>
+</main>
+<footer>The agent proposes - a named human decides. Every action on this page,
+including refusals, is written to the audit log with a timestamp.</footer>
+</body></html>

@@ -1,0 +1,141 @@
+Metadata-Version: 2.4
+Name: longview
+Version: 0.1.0
+Summary: The Long View - an agentic AI that follows one learner across years, surfacing sourced strengths and struggles for teacher-guided conversations. Built for the Agentic AI for Africa Innovation Challenge (Education track).
+Author: Longview Team
+License: MIT License
+        
+        Copyright (c) 2026 Longview Team
+        
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+        
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+        
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: fastmcp>=2.0.0
+Requires-Dist: langgraph>=0.2.0
+Requires-Dist: httpx>=0.27.0
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: fastapi>=0.115.0
+Requires-Dist: uvicorn>=0.30.0
+Requires-Dist: jinja2>=3.1.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: pytest-timeout>=2.3; extra == "dev"
+Dynamic: license-file
+
+# Longview — The Long View
+
+An agentic AI that follows one learner across **years, not one term** — surfacing sourced
+strengths and struggles early enough for a teacher to open a real conversation with a family.
+
+**Track:** Education — Longitudinal strength tracking
+(Agentic AI for Africa Innovation Challenge)
+
+Longview ingests the records a public school already has — quiz scores, assignment results,
+attendance registers, teacher notes — and turns them into a **running, cited learner profile**.
+Every strength or weakness it claims carries the exact quiz, term, and score it came from.
+It never assigns a track, never labels a child, and never shares anything outside the
+classroom without a named human approving it first.
+
+## The one rule (enforced in code, not prompts)
+
+A profile entry **cannot be written without at least one evidence reference**.
+`update_profile` validates every evidence id against the raw records database and refuses
+unsourced claims. An unsourced label on a child is worse than no label at all.
+
+## Architecture in one breath
+
+```
+raw records (SQLite, messy on purpose)
+        │
+        ▼
+Longview MCP server (ours: ingest / update_profile / flag_pattern / draft_summary / share_summary)
+        +   official sqlite MCP server (borrowed: generic read-only SQL)  ← why: audited, standard, zero code to maintain
+        │
+        ▼
+LangGraph agent (plan → ingest → analyse → propose → HUMAN GATE → draft → finalize)
+        │                                    ▲
+        ▼                                    │ named human approves
+teacher review UI (approve / dismiss flags) ─┘
+        │
+        ▼
+audit log: every tool call, inputs, outputs, timestamps, approver
+```
+
+## Quickstart (one command after clone)
+
+```bash
+pip install -e ".[dev]" && make demo
+```
+
+`make demo` does the whole loop on synthetic data:
+
+1. generates a messy 4-year synthetic cohort (80 learners, ~12 terms),
+2. runs the agent end-to-end on one learner (tool calls logged to console + audit table),
+3. starts the teacher review UI at http://localhost:8080.
+
+## Running the open-weights model
+
+Longview's full draft-summary task runs on an **open-weights model served locally**:
+
+```bash
+ollama pull qwen2.5:3b-instruct-q4_K_M   # ~2.0 GB RAM footprint
+cp .env.example .env
+```
+
+Why 3B: the whole system is designed to run on modest hardware (8 GB RAM laptop).
+The LLM layer is provider-pluggable — point `LONGVIEW_LLM_BASE_URL` at any
+OpenAI-compatible endpoint to show a frontier model side-by-side in the demo video.
+
+No Ollama installed? Everything still runs: the summary tool falls back to a deterministic
+template drafter so the pipeline is always demonstrable.
+
+## Repo map
+
+| Path | What it is |
+|---|---|
+| `datagen/` | Synthetic cohort generator — realistically messy (missing rows, late entries, typos, attendance gaps) |
+| `longview_mcp/` | **Our MCP server.** Tool logic lives in `core.py` (pure stdlib), FastMCP wrapper in `server.py` |
+| `agent/` | LangGraph agent + CLI runner (`python -m agent.run --learner L003`) |
+| `borrowed/` | The MCP server we did **not** write (official sqlite server) and why we borrow it |
+| `ui/` | Teacher review screen — the human gate, visible |
+| `evals/` | 10+ test tasks, runner, honest pass/fail report incl. one known failure |
+| `convex/` | Production backend schema + migrations (Convex), kept in lockstep with the prototype schema |
+| `tests/` | Citation integrity, pattern detection, approval gate, audit completeness |
+| `docs/` | Teacher interview notes (classroom fit), demo video script |
+
+## Evals
+
+```bash
+make evals          # runs 10+ tasks x 3 repetitions, writes evals/results/EVALS_REPORT.md
+```
+
+`EVALS.md` is regenerated from the runner output — pass/fail per task, run-to-run
+variation, and one failure we did **not** fix, with what we would try next.
+
+## Data conduct
+
+All data in this repository is **synthetic**, generated by `datagen/`. No real learner
+records are used anywhere. The generator is deliberately messy — inconsistent note
+quality, gaps in attendance, results logged late — because clean data lies.
+
+## Licence
+
+MIT (OSI-approved).

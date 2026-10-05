@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Longview - Audit log</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; margin: 0; background: #f6f4ef; color: #1c1c1c; }
+  header { background: #7a3b12; color: #fff; padding: 0 24px; }
+  header .bar { max-width: 980px; margin: 0 auto; display: flex; align-items: center;
+                gap: 22px; height: 54px; }
+  header .brand { font-weight: 700; font-size: 18px; letter-spacing: .2px; }
+  header nav a { color: #f3e3cf; text-decoration: none; font-size: 14px; padding: 6px 2px;
+                 border-bottom: 2px solid transparent; }
+  header nav a.on { color: #fff; border-bottom-color: #f3b562; }
+  main { max-width: 980px; margin: 22px auto 60px; padding: 0 16px; }
+  h2 { border-bottom: 2px solid #e5d9c3; padding-bottom: 6px; margin-top: 34px; font-size: 18px; }
+  .card { background: #fff; border: 1px solid #ddd; border-radius: 10px;
+          padding: 14px 18px; margin-bottom: 14px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 12px; margin-bottom: 8px; }
+  .kpi { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 12px 16px; }
+  .kpi b { font-size: 26px; display: block; }
+  .kpi span { color: #777; font-size: 12px; }
+  .pill { background: #eee4d2; padding: 2px 10px; border-radius: 99px; font-size: 12px;
+          white-space: nowrap; }
+  .pill.pending { background: #fde68a; } .pill.approved, .pill.raised { background: #bbf7d0; }
+  .pill.rejected, .pill.dismissed { background: #fecaca; }
+  .pill.shared { background: #bfdbfe; } .pill.draft { background: #e9d5ff; }
+  .pill.strength { background: #bbf7d0; } .pill.weakness { background: #fecaca; }
+  .muted { color: #777; font-size: 12px; }
+  pre.summary { white-space: pre-wrap; background: #faf8f3; padding: 12px;
+                border-radius: 8px; font-family: inherit; border: 1px solid #eee2cc; }
+  input { padding: 7px 9px; border: 1px solid #ccc; border-radius: 6px; }
+  button { padding: 7px 14px; border: 0; border-radius: 6px; cursor: pointer; }
+  button.ok { background: #166534; color: #fff; }
+  button.bad { background: #991b1b; color: #fff; }
+  button.flat { background: #eee4d2; color: #4a2c12; }
+  .error { background: #fee2e2; border: 1px solid #fca5a5; padding: 10px 14px;
+           border-radius: 8px; margin: 14px 0; }
+  .flash { background: #dcfce7; border: 1px solid #86efac; padding: 10px 14px;
+           border-radius: 8px; margin: 14px 0; }
+  table { border-collapse: collapse; width: 100%; background: #fff; border-radius: 10px;
+          overflow: hidden; border: 1px solid #ddd; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #eee;
+           font-size: 13px; vertical-align: top; }
+  th { background: #f0e9dc; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; }
+  tr:last-child td { border-bottom: 0; }
+  a { color: #9a4a12; }
+  .chip { display: inline-block; background: #faf3e4; border: 1px solid #e8d9b8;
+          border-radius: 6px; padding: 2px 8px; margin: 2px 4px 2px 0; font-size: 12px;
+          font-family: ui-monospace, monospace; text-decoration: none; color: #5b3a10; }
+  .chip:hover { border-color: #7a3b12; }
+  .spark { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .spark .labels { font-size: 12px; color: #666; max-width: 320px; }
+  footer { max-width: 980px; margin: 30px auto; padding: 0 16px; color: #8a8377; font-size: 12px; }
+</style></head><body><div style="background:#1e293b;color:#fbbf24;padding:8px 16px;font:13px/1.4 system-ui,sans-serif;text-align:center;">Offline snapshot of the Longview teacher-review UI, generated 2026-10-01. Action buttons are disabled here - run <code>make ui</code> inside long-view/ for the live version.</div>
+<header><div class="bar">
+  <span class="brand">Longview</span>
+  <nav><a href="index.html">Dashboard</a> <a href="learners.html">Learners</a>
+       <a href="audit.html" class="on">Audit log</a></nav>
+</div></header>
+<main>
+
+  <h2>Audit log</h2>
+  <p class="muted">Every tool call, every refusal, every human decision - newest first.</p>
+  <table><tr><th>When (UTC)</th><th>Actor</th><th>Tool</th><th>Args</th><th>Result</th></tr>
+  <tr><td class='muted'>2026-10-01T09:03:32</td><td>agent</td><td><b>request_approval</b></td><td class='muted'>{&quot;action&quot;: &quot;share_summary&quot;, &quot;payload&quot;: {&quot;summary_id&quot;: 1}}</td><td>{&quot;approval_id&quot;: 1, &quot;status&quot;: &quot;pending&quot;}</td></tr><tr><td class='muted'>2026-10-01T09:03:32</td><td>agent</td><td><b>draft_summary</b></td><td class='muted'>{&quot;learner_id&quot;: &quot;L002&quot;, &quot;source&quot;: &quot;template&quot;}</td><td>{&quot;summary_id&quot;: 1, &quot;source&quot;: &quot;template&quot;}</td></tr><tr><td class='muted'>2026-10-01T09:03:32</td><td>agent</td><td><b>update_profile</b></td><td class='muted'>{&quot;learner_id&quot;: &quot;L002&quot;, &quot;kind&quot;: &quot;weakness&quot;, &quot;claim&quot;: &quot;reading mean fell from 81.0 (Y2T1) to 65.8 (Y2T3), a 15.…</td><td>{&quot;profile_entry_id&quot;: 1, &quot;evidence_ids&quot;: [777, 778, 779, 780, 781, 782, 783, 823, 824, 825, 826, 827, 828, 873…</td></tr><tr><td class='muted'>2026-10-01T09:03:32</td><td>agent</td><td><b>flag_pattern</b></td><td class='muted'>{&quot;learner_id&quot;: &quot;L002&quot;, &quot;pattern_type&quot;: &quot;decline&quot;}</td><td>{&quot;flag_id&quot;: 1, &quot;status&quot;: &quot;pending_review&quot;, &quot;evidence_ids&quot;: [777, 778, 779, 780, 781, 782, 783, 823, 824, 825,…</td></tr><tr><td class='muted'>2026-10-01T09:03:32</td><td>agent</td><td><b>ingest_result</b></td><td class='muted'>{&quot;learner_id&quot;: &quot;L002&quot;, &quot;kind&quot;: &quot;quiz&quot;, &quot;subject&quot;: &quot;english&quot;, &quot;term&quot;: &quot;Y4T3&quot;, &quot;value&quot;: 49.2, &quot;source_ref&quot;: &quot;qu…</td><td>{&quot;event_id&quot;: 46574, &quot;skill&quot;: &quot;reading&quot;, &quot;source_ref&quot;: &quot;quiz:Y4T3:english&quot;}</td></tr></table>
+  
+</main>
+<footer>The agent proposes - a named human decides. Every action on this page,
+including refusals, is written to the audit log with a timestamp.</footer>
+</body></html>
