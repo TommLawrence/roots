@@ -54,7 +54,7 @@
   .spark { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
   .spark .labels { font-size: 12px; color: #666; max-width: 320px; }
   footer { max-width: 980px; margin: 30px auto; padding: 0 16px; color: #8a8377; font-size: 12px; }
-</style></head><body><div style="background:#1e293b;color:#fbbf24;padding:8px 16px;font:13px/1.4 system-ui,sans-serif;text-align:center;">Offline snapshot of the Longview teacher-review UI, generated 2026-10-05. Action buttons are disabled here - run <code>make ui</code> inside long-view/ for the live version.</div>
+</style></head><body><div style="background:#1e293b;color:#fbbf24;padding:8px 16px;font:13px/1.4 system-ui,sans-serif;text-align:center;">Offline snapshot of the Longview teacher-review UI, generated 2026-10-13. Action buttons are disabled here - run <code>make ui</code> inside long-view/ for the live version.</div>
 <header><div class="bar">
   <span class="brand">Longview</span>
   <nav><a href="index.html">Dashboard</a> <a href="learners.html" class="on">Learners</a>
@@ -79,22 +79,21 @@
       </div>
   <h2>Flags (1)</h2>
   
-      <div class="card">
-        <div class="row"><span class="pill pending">sustained_strength</span>
-          <span class="muted">2026-10-05T11:02</span></div>
-        <p>geometry averaged 86.5 across 12 terms (Y1T1 to Y4T3).</p>
-        <div style="border:1px dashed #94a3b8;background:#f8fafc;color:#475569;padding:10px 14px;border-radius:8px;font:14px/1.5 system-ui,sans-serif;">This action (approve / reject / share / resolve) is disabled in the offline snapshot. In the live UI it asks you to type your name first, and every decision is written to the audit trail.</div>
-      </div>
+      <div class="card"><div class="row">
+        <span class="pill raised">sustained_strength</span>
+        <span class="muted">raised by Lence
+        2026-10-12T11:32</span></div>
+        <p>geometry averaged 86.5 across 12 terms (Y1T1 to Y4T3).</p></div>
   <h2>Summaries (1)</h2>
   
       <div class="card">
-        <div class="row"><span class="pill draft">draft</span>
+        <div class="row"><span class="pill shared">shared</span>
           <span class="muted">summary #2 · 2026-10-05T11:02
           · drafted by agent</span></div>
         <pre class="summary">Draft for Laila P.'s guardian - please use this to open a conversation with Laila P.'s teacher. This is a summary of recorded work, not a verdict on the child.
 - Kept doing well in geometry: geometry averaged 86.5 across 12 terms (Y1T1 to Y4T3). Worth talking about together.
 Every point above comes from recorded quizzes, assignments, or the register - ask the teacher to see them.</pre>
-        <div class="row"><a href="gate_2.html">open gate #2</a></div>
+        <div class="row"><div style="border:1px dashed #94a3b8;background:#f8fafc;color:#475569;padding:10px 14px;border-radius:8px;font:14px/1.5 system-ui,sans-serif;">This action (approve / reject / share / resolve) is disabled in the offline snapshot. In the live UI it asks you to type your name first, and every decision is written to the audit trail.</div><a href="guardian_2.html">preview guardian message</a></div>
       </div>
 </main>
 <footer>The agent proposes - a named human decides. Every action on this page,
