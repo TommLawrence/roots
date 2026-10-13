@@ -11,6 +11,7 @@ import sqlite3
 from datetime import datetime, timezone
 
 from .db import connect, default_db_path
+from . import auditchain
 from . import patterns
 
 
@@ -31,12 +32,26 @@ def _now() -> str:
 
 
 def audit(conn: sqlite3.Connection, actor: str, tool: str, args: dict, result) -> int:
+    ts = _now()
+    args_json = json.dumps(args, default=str)
+    result_json = json.dumps(result, default=str)
     cur = conn.execute(
         "INSERT INTO audit_log (ts, actor, tool, args, result) VALUES (?,?,?,?,?)",
-        (_now(), actor, tool, json.dumps(args, default=str), json.dumps(result, default=str)),
+        (ts, actor, tool, args_json, result_json),
     )
+    row_id = cur.lastrowid
+    # Chain immediately: hash includes the previous entry's hash, so rewriting
+    # or deleting history is detectable (see longview_mcp/auditchain.py).
+    prev = conn.execute(
+        "SELECT entry_hash FROM audit_log WHERE id<? AND entry_hash IS NOT NULL "
+        "ORDER BY id DESC LIMIT 1", (row_id,)).fetchone()
+    prev_hash = prev["entry_hash"] if prev else auditchain.GENESIS
+    entry_hash = auditchain.entry_digest(prev_hash, ts, actor, tool,
+                                         args_json, result_json)
+    conn.execute("UPDATE audit_log SET prev_hash=?, entry_hash=? WHERE id=?",
+                 (prev_hash, entry_hash, row_id))
     conn.commit()
-    return cur.lastrowid
+    return row_id
 
 
 # ---------------------------------------------------------------- ingest

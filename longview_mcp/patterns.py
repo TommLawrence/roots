@@ -4,11 +4,29 @@ No ML black box: every function returns the exact terms, means, and evidence ids
 behind a claim, so a teacher can ask "why" and get an answer.
 """
 
+import difflib
 import json
+import re
 import sqlite3
 
 TERMS = [f"Y{y}T{t}" for y in range(1, 5) for t in range(1, 4)]
 TERM_INDEX = {t: i for i, t in enumerate(TERMS)}
+
+# Skill vocabulary: English keywords (substring rules below) plus Kiswahili
+# terms teachers actually write in remark books. Kiswahili matching runs both
+# as an exact word match and, for typoed words, a transparent fuzzy token
+# match - deterministic string distance, no ML, fully inspectable.
+KISWAHILI_VOCAB = {
+    "kusoma": "reading", "anasoma": "reading", "soma": "reading",
+    "sauti": "reading",          # "kwa sauti" = read aloud
+    "kuandika": "writing", "andika": "writing", "insha": "writing",
+    "hesabu": "arithmetic", "kuhesabu": "arithmetic", "jumlisha": "arithmetic",
+    "jiometri": "geometry", "maumbo": "geometry", "kutofautisha": "reasoning",
+}
+FUZZY_VOCAB = {**KISWAHILI_VOCAB,
+               "reading": "reading", "spelling": "writing", "arithmetic": "arithmetic"}
+_FUZZY_MIN_TOKEN = 4     # ignore short tokens: too easy to false-match
+_FUZZY_CUTOFF = 0.80     # "kuosma" vs "kusoma" scores 0.83; random words score < 0.7
 
 
 def term_sort_key(term: str) -> int:
@@ -17,7 +35,12 @@ def term_sort_key(term: str) -> int:
 
 def infer_skill(detail: str, subject: str) -> str:
     """Map free text to a skill keyword. Deliberately conservative:
-    unrecognised text becomes 'unknown_skill' (see EVALS task E11)."""
+    unrecognised text still becomes 'unknown_skill' (see EVALS tasks E11/E12).
+
+    Order: English keyword rules, exact Kiswahili vocabulary, then a fuzzy
+    token pass (difflib, cutoff 0.80) that recovers teacher typos such as
+    "kuosma" -> kusoma -> reading. Every step is deterministic.
+    """
     text = (detail or "").lower() + " " + (subject or "").lower()
     checks = [
         (["geometry", "shape", "spatial", "pattern", "block"], "geometry"),
@@ -29,6 +52,15 @@ def infer_skill(detail: str, subject: str) -> str:
     for keywords, skill in checks:
         if any(k in text for k in keywords):
             return skill
+    for word, skill in KISWAHILI_VOCAB.items():
+        if f" {word} " in f" {text} ":
+            return skill
+    for token in re.findall(r"[a-z]+", text):
+        if len(token) < _FUZZY_MIN_TOKEN:
+            continue
+        match = difflib.get_close_matches(token, FUZZY_VOCAB, n=1, cutoff=_FUZZY_CUTOFF)
+        if match:
+            return FUZZY_VOCAB[match[0]]
     return "unknown_skill"
 
 

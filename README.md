@@ -16,6 +16,12 @@ named human approving it first.
 **Watch the demo (90 seconds):** [`docs/demo.mp4`](docs/demo.mp4)
 **Browse the teacher review UI (read-only snapshot of a real run):** <https://tommlawrence.github.io/roots/>
 
+> **What's new (v0.3):** the audit log is now a **SHA-256 hash chain** — the review UI
+> verifies it live and exports it as CSV; approved summaries get a **guardian message
+> preview** page (the exact outbound SMS, with segmentation math and citations);
+> the documented Kiswahili eval failure (E11) is **fixed** and a conservative guardrail
+> eval (E12) added — evals now stand at **12/12 PASS**.
+
 | Dashboard | Learner profile | Share gate |
 |---|---|---|
 | ![Dashboard](docs/screenshots/dashboard.png) | ![Learner profile](docs/screenshots/learner_profile.png) | ![Share gate](docs/screenshots/share_gate.png) |
@@ -47,12 +53,15 @@ where a human must decide. It:
 4. **Raises patterns for teacher review** and **drafts plain-language guardian summaries**
    from cited facts only, using a local open-weights model (no cloud, no child data leaves
    the machine).
-5. **Stops at a human gate**: nothing is shared and no flag becomes action until a named
+5. **Human gate**: nothing is shared and no flag becomes action until a named
    teacher approves it in the review UI — by typing their name on the record.
+6. **Shows the receipt**: once a gate is approved, `/guardian/{id}` renders the exact
+   outbound message — character count, SMS segments, and the citation appendix — so
+   what leaves the classroom is never a mystery.
 
 The teacher reviews everything in a 6-page web UI (dashboard, roster, learner profile,
 share gate, evidence drill-down, audit log). The agent proposes; the human decides; the
-audit log remembers both.
+audit log remembers both — and the log itself is tamper-evident.
 
 ## Target users
 
@@ -78,8 +87,8 @@ Six layers, bottom-up in the diagram above:
    MCP server (sandboxed reads of `records_inbox/`) and the official SQLite MCP server
    (generic read-only SQL), wired in `mcp_config.json`.
 4. **Data & memory** — local SQLite (raw events, cited profiles, flags, approvals,
-   append-only audit log) for the classroom; Convex schema + typed write-functions as the
-   production backend, enforcing the same rules at the database layer.
+   append-only **hash-chained** audit log) for the classroom; Convex schema + typed
+   write-functions as the production backend, enforcing the same rules at the database layer.
 5. **Human gate** — the FastAPI teacher review UI; the agent cannot approve its own gate.
 6. **Outputs** — guardian report (SMS gateway in production), leadership view, Convex
    HTTP bridge (`/api/v1`). No external LLM APIs are called with learner data.
@@ -150,6 +159,11 @@ documented in `borrowed/README.md`.
 There are **no scheduled jobs**: nothing happens without a teacher triggering it, so the
 human gate cannot be bypassed by a timer.
 
+After approval, **`/guardian/{id}` shows the receipt**: the exact message the guardian
+receives, who cleared it and when, how many SMS segments it costs, and a citation
+appendix mapping every sentence to its raw records. Before approval the same page says
+plainly: *nothing has left the classroom yet.*
+
 ## Technology stack
 
 | Layer | Choice | Why |
@@ -207,13 +221,15 @@ migrations; see `convex/README.md` for `npx convex dev`, data import
 | `make agent` | Run the agent on learner `L003` (tool-call trace printed for demo) |
 | `make inbox` | Watch `records_inbox/` via the filesystem MCP server; newest export wakes the agent |
 | `make ui` | Start the teacher review UI (`python -m ui.app --port 8080`) |
-| `make evals` | 11 tasks × 3 reps, writes `evals/results/EVALS_REPORT.md` |
-| `make test` | Run the 43 pytest cases |
+| `make evals` | 12 tasks × 3 reps, writes `evals/results/EVALS_REPORT.md` |
+| `make test` | Run the 52 pytest cases |
 
 **Review UI pages:** `/` dashboard (KPIs, flag queue, gate queue) · `/learners` roster ·
 `/learner/{code}` cited profile with trends · `/gate/{id}` share gate with
 claims-to-evidence tables · `/evidence?id=…` (or `?ref=…`) drill-down to the raw record ·
-`/audit` append-only log. Approve/reject forms require typing your name; the share button
+`/guardian/{id}` the exact outbound guardian message with citations · `/audit` append-only
+log with a **live hash-chain verification badge** and **CSV export**
+(`/audit/export.csv`). Approve/reject forms require typing your name; the share button
 only appears once a gate is approved.
 
 **Environment variables** (`.env.example`): `LONGVIEW_MODEL`, `LONGVIEW_LLM_BASE_URL`,
@@ -221,12 +237,16 @@ only appears once a gate is approved.
 
 ## Testing & evaluation
 
-- `make test` — **43 pytest cases**: citation integrity (no unsourced claims possible),
-  pattern detection incl. no-false-positives, gate semantics (approve, reject, empty-name
-  refusal, agent self-approval refusal), audit completeness, UI flows, inbox ingest.
-- `make evals` — 11 task scenarios × repetitions on fresh cohorts. E01–E10 pass stably;
-  **E11 is a documented known failure** (a Kiswahili typo note maps to `unknown_skill`)
-  kept visible in `EVALS.md` with next steps rather than hidden.
+- `make test` — **52 pytest cases**: citation integrity (no unsourced claims possible),
+  pattern detection incl. no-false-positives, Kiswahili skill mapping (typo recovery +
+  conservative fallback), gate semantics (approve, reject, empty-name refusal, agent
+  self-approval refusal), **audit hash-chain integrity (tampering and deletion are
+  detected; legacy databases migrate)**, audit completeness, UI flows, guardian-page
+  gating, inbox ingest.
+- `make evals` — **12 task scenarios × repetitions** on fresh cohorts. **All 12 pass
+  stably**, including E11, which was a documented 0/5 failure in the first run and is now
+  fixed deterministically (Kiswahili vocabulary + fuzzy token match) with a guardrail
+  task (E12) proving the mapper still refuses to guess. The full story is in `EVALS.md`.
 
 ## Limitations
 
@@ -235,10 +255,12 @@ only appears once a gate is approved.
 - **Single-school, single-machine scale.** SQLite is the classroom store; Convex is the
   production path but is not deployed to a cloud project yet (schema, guards, migrations
   and import script are ready and typechecked).
-- **One known eval failure** (E11, Kiswahili typo → `unknown_skill`); Kiswahili/vernacular
-  note handling is rudimentary.
-- **SMS is stubbed.** `share_summary` records the intent and the approval trail; wiring to
-  a real gateway (e.g. Africa's Talking) is production work.
+- **One known weakness remapped:** the E11 Kiswahili failure is fixed by a small
+  vocabulary + typo-tolerant match; notes in languages beyond that vocabulary
+  (e.g. Luo, Ateso) still map conservatively to `unknown_skill` by design.
+- **SMS is stubbed.** `share_summary` records the intent and the approval trail, and the
+  guardian message is rendered exactly as it would be sent (with SMS-segment math);
+  wiring to a real gateway (e.g. Africa's Talking) is production work.
 - **The review UI is single-operator.** Designed for the class teacher's laptop; no
   multi-user auth yet, so it is not meant to be exposed publicly as-is.
 - The LLM drafts summaries but is never trusted with the citation rule — that is data-layer
@@ -247,7 +269,13 @@ only appears once a gate is approved.
 ## Future improvements
 
 - Wire the SMS gateway for real guardian delivery with delivery receipts into the audit log.
-- Better Kiswahili/bilingual note understanding (the E11 failure is the concrete to-do).
+- Extend note understanding beyond the current Kiswahili vocabulary (Luo, Ateso) using
+  the local model with a confidence-gated `needs_human_read` flag for low-confidence reads.
+- An "ask the records" box: teachers ask a question in plain language and the agent answers
+  by planning read-only MCP tool calls (including the borrowed SQLite server), citing
+  evidence ids for every row it quotes.
+- A teacher-triggered cohort digest: one page rolling up the week's flags, gates and
+  attendance risks for the deputy head (on demand, never scheduled).
 - Deploy Convex, run the import + migrations on a real project, and move multi-school
   leadership views there.
 - Multi-teacher accounts and roles in the review UI (deputy head vs class teacher).
@@ -260,7 +288,9 @@ only appears once a gate is approved.
 All data in this repository is **synthetic**, generated by `datagen/`. No real learner
 records exist anywhere in the repo or its history. The architecture is privacy-first by
 design: local LLM, local storage, nothing leaves the classroom without a named human's
-approval, and every share is auditable end-to-end.
+approval, every share is auditable end-to-end, and the audit trail is **tamper-evident**
+(each entry is SHA-256-chained to the previous one; the UI verifies the chain on every
+visit and exports it as re-verifiable CSV).
 
 ## Repository map
 
@@ -274,8 +304,8 @@ approval, and every share is auditable end-to-end.
 | `borrowed/` | The two MCP servers we did **not** write, and the boundary table |
 | `ui/` | Teacher review UI (FastAPI) — the human gate, visible |
 | `convex/` | Production backend: schema, guarded write-functions, migrations, `/api/v1` bridge |
-| `evals/` | 11 task scenarios, runner, honest report incl. one known failure |
-| `tests/` | 43 pytest cases |
+| `evals/` | 12 task scenarios, runner, honest report (incl. the E11 failure→fix history) |
+| `tests/` | 52 pytest cases |
 | `docs/` | This demo: `demo.mp4`, `architecture.png`, `screenshots/`, teacher interview template, demo script |
 | `scripts/export_for_convex.py` | SQLite → camelCase JSONL export (verified on 46.5k events) |
 

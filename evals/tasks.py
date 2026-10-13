@@ -148,17 +148,32 @@ def e10_tone_conversation_opener(conn):
         else f"framing={framing}, prescriptive={prescriptive}")
 
 
-def e11_known_failure_kiswahili_note(conn):
-    """KNOWN FAILURE (documented in EVALS.md): a heavily-typoed Kiswahili note is
-    stored but the skill mapper cannot extract a signal from it."""
+def e11_kiswahili_typoed_note(conn):
+    """A heavily-typoed Kiswahili note must still yield a skill signal.
+
+    History: this task FAILED 0/5 in the first eval run (the note mapped to
+    unknown_skill) and was kept as a documented known failure. It is now fixed
+    deterministically - a Kiswahili vocabulary plus a fuzzy token pass
+    (difflib, cutoff 0.80) recovers "kuosma" -> kusoma -> reading. No ML, no
+    LLM in the path; see longview_mcp/patterns.py."""
     res = core.ingest_result(conn, "eval", "L010", "note", "kiswahili", "Y4T3",
                              detail="anahitaji msaada wa kuosma kwa sauti  (typoed)")
     extracted = res["skill"]
-    failed = extracted == "unknown_skill"
-    return (not failed), (
-        f"note ingested as event {res['event_id']}; skill extracted = {extracted!r}; "
-        f"known failure: needs a Kiswahili-capable model (Aya / larger Qwen) - "
-        f"next step documented in EVALS.md")
+    ok = extracted == "reading"
+    return ok, (f"note ingested as event {res['event_id']}; skill extracted = "
+                f"{extracted!r} (was the documented E11 failure; now recovered via "
+                f"Kiswahili vocab + fuzzy token match)")
+
+
+def e12_unmatched_note_stays_conservative(conn):
+    """The guardrail behind the E11 fix: notes with no recognisable skill signal,
+    in any language, must still map to unknown_skill - a wrong auto-label on a
+    child is worse than no label."""
+    res = core.ingest_result(conn, "eval", "L010", "note", "kiswahili", "Y4T3",
+                             detail="anahitaji msaada sasa hivi tafadhali")
+    ok = res["skill"] == "unknown_skill"
+    return ok, (f"note without any skill vocabulary stays {res['skill']!r} "
+                f"(conservative fallback intact)")
 
 
 TASKS = [
@@ -172,5 +187,6 @@ TASKS = [
     ("E08", "Named-human gate then share", e08_named_human_gate, False),
     ("E09", "Audit log completeness", e09_audit_completeness, False),
     ("E10", "Tone: conversation opener, not prescriptive", e10_tone_conversation_opener, False),
-    ("E11", "KNOWN FAIL: Kiswahili typoed note", e11_known_failure_kiswahili_note, False),
+    ("E11", "Kiswahili typoed note -> reading (fixed)", e11_kiswahili_typoed_note, False),
+    ("E12", "Unmatched note stays unknown_skill (conservative)", e12_unmatched_note_stays_conservative, False),
 ]

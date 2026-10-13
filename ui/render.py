@@ -198,6 +198,7 @@ def render_dashboard(counts, flags, gates, shared, error=None, ok=None) -> str:
     shared_html = "".join(
         f"<li><a href=\"/learner/{_esc(s['learner_id'])}\">{_esc(s['name'])}</a> - "
         f"summary #{int(s['id'])} shared "
+        f"&middot; <a href=\"/guardian/{int(s['id'])}\">view the guardian message</a> "
         f"<span class='muted'>(audit log has the approval)</span></li>"
         for s in shared)
 
@@ -297,7 +298,11 @@ def render_learner(learner_row, series, attendance, entries, flags, summaries,
         elif a and a["status"] == "approved":
             action = (f'<form method="post" action="/share" class="row">'
                       f'<input type="hidden" name="summary_id" value="{int(s["id"])}">'
-                      f'<button class="ok">Send to guardian</button></form>')
+                      f'<button class="ok">Send to guardian</button></form>'
+                      f'<a href="/guardian/{int(s["id"])}">preview guardian message</a>')
+        elif s["status"] == "shared":
+            action = (f'<a href="/guardian/{int(s["id"])}">view guardian message</a> '
+                      f'<span class="muted">&middot;</span> <a href="/audit">see audit log</a>')
         else:
             action = f'<a href="/audit">see audit log</a>'
         summary_html += f"""
@@ -360,15 +365,18 @@ def render_gate(detail, error=None, ok=None) -> str:
         </div>
       </form>"""
     elif status == "approved":
+        sid = int((detail['summary'] or {}).get('id') or 0)
         form = f"""
       <div class="card">
         <p><b>Approved by {_esc(a.get('decided_by') or '-')}</b>
         <span class="muted">{_esc(str(a.get('decided_at') or '')[:16])}</span></p>
         <form method="post" action="/share" class="row">
-          <input type="hidden" name="summary_id" value="{int((detail['summary'] or {}).get('id') or 0)}">
+          <input type="hidden" name="summary_id" value="{sid}">
           <button class="ok">Send to guardian (SMS)</button>
           <span class="muted">guardian on record: {_esc(s.get('guardian') or '-')}</span>
         </form>
+        <p class="muted" style="margin-top:8px"><a href="/guardian/{sid}">
+        Preview the exact guardian message</a> - what will be sent, with its citations.</p>
       </div>"""
     else:
         form = (f'<div class="card"><p>Rejected by {_esc(a.get("decided_by") or "-")}. '
@@ -405,7 +413,95 @@ def render_evidence(row, back_to) -> str:
   >{_esc(row['learner_id'])}</a></td></tr>{fields}</table>""")
 
 
-def render_audit(rows, total, limit, offset) -> str:
+def _sms_stats(body: str) -> tuple:
+    """(chars, segments, encoding) - plain GSM-7 math, no provider SDK needed."""
+    gsm = set("@\u00a3$\u00a5\u00e8\u00e9\u00f9\u00ec\u00f2\u00c7\n\u00d8\u00f8\r\u00c5\u00e5\u0394_\u03a6\u0393\u039b\u03a9\u03a0\u03a8\u03a3\u0398\u039e\u00c6\u00e6\u00df\u00c9 !\"#\u00a4%&'()*+,-./0123456789:;<=>?\u00a1ABCDEFGHIJKLMNOPQRSTUVWXYZ\u00c4\u00d6\u00d1\u00dc\u00a7\u00bfabcdefghijklmnopqrstuvwxyz\u00e4\u00f6\u00f1\u00fc\u00e0")
+    n = len(body)
+    if all(c in gsm for c in body):
+        per = 153 if n > 160 else 160
+        return n, max(1, -(-n // per)), "GSM-7"
+    per = 67 if n > 70 else 70
+    return n, max(1, -(-n // per)), "UCS-2 (non-GSM characters present)"
+
+
+def render_guardian(view) -> str:
+    """The exact outbound guardian message - the receipt for what left the classroom.
+
+    Only exists in a meaningful sense AFTER a named human approved the gate;
+    before that this page says so explicitly.
+    """
+    s = view["summary"]
+    a = view.get("approval")
+    approved = bool(a and a["status"] == "approved")
+    back = f'/learner/{_esc(s["learner_id"])}'
+
+    if not approved:
+        return _layout(f"Longview - Guardian message (summary #{int(s['id'])})", "dash", f"""
+  <p><a href="{_esc(back)}">&larr; back to {_esc(s['name'])}</a></p>
+  <h2>Guardian message (summary #{int(s['id'])})
+      <span class="pill {_esc(s['status'])}">{_esc(s['status'])}</span></h2>
+  <div class="card">
+    <p><b>Nothing has left the classroom yet.</b></p>
+    <p class="muted">This page shows the exact message a guardian would receive. It only
+    fills in after a named human approves the share gate
+    {f'<a href="/gate/{int(a["id"])}">(gate #{int(a["id"])} is {a["status"]})</a>' if a else '(no gate requested yet)'}.
+    That is deliberate: the agent drafts, a person decides, and the audit log
+    records both.</p>
+  </div>""")
+
+    chars, segments, encoding = _sms_stats(s["body"])
+
+    findings_html = ""
+    for f in view["findings"]:
+        chips = "".join(_ev_chip(ev) for ev in f["evidence"])
+        findings_html += (f"<tr><td><span class=\"pill pending\">"
+                          f"{_esc(f['pattern_type'])}</span></td>"
+                          f"<td>{_esc(f.get('skill') or '-')}</td>"
+                          f"<td>{chips or '<span class=muted>none</span>'}</td></tr>")
+    entries_html = ""
+    for e in view["profile_entries"]:
+        chips = "".join(_ev_chip(ev) for ev in e["evidence"])
+        entries_html += (f"<tr><td><span class=\"pill {_esc(e['kind'])}\">"
+                         f"{_esc(e['kind'])}</span></td><td>{_esc(e['claim'])}</td>"
+                         f"<td>{chips or '<span class=muted>none</span>'}</td></tr>")
+
+    return _layout(f"Longview - Guardian message (summary #{int(s['id'])})", "dash", f"""
+  <p><a href="{_esc(back)}">&larr; back to {_esc(s['name'])}</a></p>
+  <h2>Guardian message (summary #{int(s['id'])})
+      <span class="pill {_esc(s['status'])}">{_esc(s['status'])}</span></h2>
+  <p class="muted">Cleared by <b>{_esc(a['decided_by'])}</b> on
+      {_esc(str(a['decided_at'])[:16])} via gate #{int(a['id'])}
+      {f' &middot; note: {_esc(a["note"])}' if a.get('note') else ''}.</p>
+  <div class="card">
+    <p><b>To:</b> {_esc(s.get('guardian') or 'guardian on record')}
+       <span class="muted">(guardian of {_esc(s['name'])})</span><br>
+       <b>Channel:</b> SMS <span class="muted">(gateway delivery is stubbed - this page
+       is the exact record of what was approved; see Limitations in the README)</span></p>
+    <pre class="summary">{_esc(s['body'])}</pre>
+    <p class="muted">{chars} characters &middot; {segments} SMS segment(s)
+       &middot; {encoding}</p>
+  </div>
+  <h2>Where each point comes from</h2>
+  <p class="muted">The guardian message cites recorded work; here is the receipt.
+  Every chip opens the raw record it came from.</p>
+  <table><tr><th>Pattern</th><th>Skill</th><th>Evidence (raw records)</th></tr>{findings_html}</table>
+  <h2>Cited profile entries used</h2>
+  <table><tr><th>Kind</th><th>Claim</th><th>Evidence</th></tr>{entries_html}</table>""")
+
+
+def render_audit(rows, total, limit, offset, chain=None) -> str:
+    if chain and chain.get("ok"):
+        chain_html = (f'<div class="row" style="margin-bottom:12px">'
+                      f'<span class="pill approved">audit chain verified &middot; '
+                      f'{int(chain["rows"])} entries &middot; SHA-256 linked</span>'
+                      f'<a href="/audit/export.csv">Export CSV</a> '
+                      f'<span class="muted">every entry hashes the previous one - '
+                      f'editing or deleting history is detectable</span></div>')
+    elif chain:
+        chain_html = (f'<div class="error"><b>AUDIT CHAIN TAMPERED</b> at entry '
+                      f'#{int(chain["first_bad_id"])}: {_esc(chain["reason"])}</div>')
+    else:
+        chain_html = ""
     body = ""
     for r in rows:
         try:
@@ -427,6 +523,7 @@ def render_audit(rows, total, limit, offset) -> str:
     return _layout("Longview - Audit log", "audit", f"""
   <h2>Audit log</h2>
   <p class="muted">Every tool call, every refusal, every human decision - newest first.</p>
+  {chain_html}
   <table><tr><th>When (UTC)</th><th>Actor</th><th>Tool</th><th>Args</th><th>Result</th></tr>
   {body}</table>
   {pager if total > limit else ''}""")

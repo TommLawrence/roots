@@ -4,7 +4,7 @@
 > Each task runs against a **fresh synthetic cohort per repetition** (no shared state,
 > no cherry-picking). Run-to-run variation is reported per task.
 >
-> Latest run: 11 tasks x 5 repetitions, seeds 101-105, 80 learners each.
+> Latest run: 12 tasks x 3 repetitions, seeds 101-103, 80 learners each.
 > LLM tasks: the drafter probe found no local model in this environment, so E06/E10
 > ran with the deterministic template drafter and say so in their detail column.
 > Re-run on the target laptop with Ollama (`qwen2.5:3b-instruct-q4_K_M`) to score the
@@ -12,33 +12,49 @@
 
 | ID | Task | Pass rate | Variation | Status |
 |----|------|-----------|-----------|--------|
-| E01 | Ingest + cited profile update | 5/5 | stable | PASS |
-| E02 | Unsourced claim refused (empty + phantom evidence) | 5/5 | stable | PASS |
-| E03 | Longitudinal decline detected (L002, slow 12-term slide) | 5/5 | stable | PASS |
-| E04 | Sustained strength detected (L001) | 5/5 | stable | PASS |
-| E05 | Attendance risk window (L004, Y3T1 weeks 4-10) | 5/5 | stable | PASS |
-| E06 | Summary contains no invented score figures | 5/5 | stable | PASS (template drafter) |
-| E07 | Share blocked without an approved gate | 5/5 | stable | PASS |
-| E08 | Named-human gate (Mr. Otieno) then share, audit row complete | 5/5 | stable | PASS |
-| E09 | Audit log completeness (N tool calls -> N rows, fields populated) | 5/5 | stable | PASS |
-| E10 | Tone: conversation opener, never prescriptive | 5/5 | stable | PASS (template drafter) |
-| E11 | Kiswahili typoed note -> skill extraction | 0/5 | stable | **KNOWN FAIL, not fixed** |
+| E01 | Ingest + cited profile update | 3/3 | stable | PASS |
+| E02 | Unsourced claim refused (empty + phantom evidence) | 3/3 | stable | PASS |
+| E03 | Longitudinal decline detected (L002, slow 12-term slide) | 3/3 | stable | PASS |
+| E04 | Sustained strength detected (L001) | 3/3 | stable | PASS |
+| E05 | Attendance risk window (L004, Y3T1 weeks 4-10) | 3/3 | stable | PASS |
+| E06 | Summary contains no invented score figures | 3/3 | stable | PASS (template drafter) |
+| E07 | Share blocked without an approved gate | 3/3 | stable | PASS |
+| E08 | Named-human gate (Mr. Otieno) then share, audit row complete | 3/3 | stable | PASS |
+| E09 | Audit log completeness + hash chain intact | 3/3 | stable | PASS |
+| E10 | Tone: conversation opener, never prescriptive | 3/3 | stable | PASS (template drafter) |
+| E11 | Kiswahili typoed note -> reading (**fixed** - was the documented failure) | 3/3 | stable | PASS |
+| E12 | Unmatched note stays `unknown_skill` (conservative guardrail) | 3/3 | stable | PASS |
 
 Detail per repetition is in `evals/results/EVALS_REPORT.md` and `evals/results/results.json`.
 
-## Known failure - E11 (kept on purpose)
+## From known failure to fix: the E11 story
 
-A heavily-typoed Kiswahili teacher note ("anahitaji msaada wa kuosma kwa sauti") is
-ingested and stored, but the deterministic skill keyword mapper returns `unknown_skill`
-- no learning signal is extracted, so the note cannot contribute to a cited profile
-entry. We did not fix this. What we would try next:
+In the **first** eval run, E11 failed **0/5**: a heavily-typoed Kiswahili teacher note
+("anahitaji msaada wa **kuosma** kwa sauti" - *kuosma* is a typo of *kusoma*, "to read")
+was ingested and stored correctly, but the skill mapper extracted no signal and filed it
+under `unknown_skill`, so the note could not contribute to a cited profile entry. We
+documented the failure in this file instead of hiding it, with the options we would try.
 
-1. route the note through the open-weights model with an explicit Kiswahili-capable
-   prompt (Aya or Qwen 3B+), returning `{"skill": ..., "confidence": ...}`;
-2. if confidence is low, raise a `needs_human_read` flag instead of silently skipping -
-   a wrong auto-label on a child is worse than no label;
-3. re-run E11 expecting the flag path, and add a Kiswahili-note fixture set to the
-   synthetic generator.
+**The fix (current version) is deliberately boring** - no ML, no LLM in the path:
+
+1. a small Kiswahili remark-book vocabulary (`kusoma`, `soma`, `sauti` = read aloud,
+   `kuandika`/`insha` = writing, `hesabu` = arithmetic, `jiometri`/`maumbo` = geometry, ...),
+   matched on word boundaries;
+2. a fuzzy token pass for typos: `difflib` close-match at cutoff 0.80 recovers
+   `kuosma -> kusoma -> reading` (the pair scores 0.83; unrelated words score well below
+   the cutoff). The rule is deterministic, inspectable, and cited in the code.
+
+**The guardrail:** fixing E11 must not make the mapper braver. E12 pins the conservative
+behaviour - a note with no recognisable skill signal in any language still maps to
+`unknown_skill`, never a guess, because a wrong auto-label on a child is worse than no
+label. Both behaviour changes are unit-tested (`tests/test_patterns.py`).
+
+What we would still try next, for languages beyond this vocabulary (e.g. Luo, Ateso):
+
+1. route the note through the open-weights model with an explicit prompt, returning
+   `{"skill": ..., "confidence": ...}`;
+2. if confidence is low, raise a `needs_human_read` flag instead of silently skipping;
+3. add a Kiswahili/Luo note fixture set to the synthetic generator so evals cover it.
 
 ## Design notes
 
@@ -52,3 +68,7 @@ entry. We did not fix this. What we would try next:
   from evidence (`collect_summary_facts().allowed_numbers`). Under the template drafter
   the check is trivially safe by construction; it becomes a real test once the LLM
   drafter runs on the target laptop.
+- The audit log is now a SHA-256 hash chain (`longview_mcp/auditchain.py`): every entry
+  hashes the previous one, tampering with any field or deleting a row is detected by
+  `verify()`, and the review UI shows a live verification badge with CSV export.
+  E09 asserts rows stay complete and chained.

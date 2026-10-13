@@ -7,26 +7,31 @@ Pages
   /gate/{id}       the share gate: summary + the records behind every claim
   /evidence?id=N   one raw record (what a citation points at)
   /audit           every tool call, refusal and decision, newest first
+  /audit/export.csv  the full audit log as CSV (with hash-chain columns)
+  /guardian/{sid}  the exact outbound guardian message (after a named human approves)
 
 Rules that hold here (enforced in core.py, not in this UI):
   - approving / rejecting / raising / dismissing needs a NAMED human,
   - the agent cannot do any of those itself,
-  - sharing only works behind an approved gate.
+  - sharing only works behind an approved gate,
+  - the audit log is hash-chained; tampering is detected and shown.
 
 Run:  longview-ui --port 8080      (or: python -m ui.app)
 """
 
 import argparse
+import csv
+import io
 import urllib.parse
 
 import uvicorn
 from fastapi import FastAPI, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
-from longview_mcp import core
+from longview_mcp import auditchain, core
 from ui import queries
 from ui.render import (render_404, render_audit, render_dashboard, render_evidence,
-                       render_gate, render_learner, render_roster)
+                       render_gate, render_guardian, render_learner, render_roster)
 
 app = FastAPI(title="Longview - Teacher Review", docs_url=None, redoc_url=None)
 
@@ -125,7 +130,41 @@ def audit_page(limit: int = 50, offset: int = 0):
     conn = core.open_db()
     try:
         rows, total = queries.audit_page(conn, limit=limit, offset=offset)
-        return render_audit(rows, total, limit, offset)
+        chain = auditchain.verify(conn)
+        return render_audit(rows, total, limit, offset, chain=chain)
+    finally:
+        conn.close()
+
+
+@app.get("/audit/export.csv")
+def audit_export():
+    """The full audit log as CSV - hash columns included, so the exported file
+    can be re-verified offline (hash = SHA-256 of prev_hash + fields)."""
+    conn = core.open_db()
+    try:
+        buf = io.StringIO()
+        writer = csv.writer(buf)
+        writer.writerow(["id", "ts", "actor", "tool", "args", "result",
+                         "prev_hash", "entry_hash"])
+        for r in conn.execute("SELECT * FROM audit_log ORDER BY id"):
+            writer.writerow([r["id"], r["ts"], r["actor"], r["tool"],
+                             r["args"], r["result"],
+                             r["prev_hash"] or "", r["entry_hash"] or ""])
+    finally:
+        conn.close()
+    return Response(
+        content=buf.getvalue(), media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="longview_audit_log.csv"'})
+
+
+@app.get("/guardian/{summary_id}", response_class=HTMLResponse)
+def guardian_page(summary_id: int):
+    conn = core.open_db()
+    try:
+        view = queries.guardian_message(conn, summary_id)
+        if not view:
+            return HTMLResponse(render_404(f"No summary #{summary_id}."), status_code=404)
+        return render_guardian(view)
     finally:
         conn.close()
 

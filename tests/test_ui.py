@@ -139,3 +139,60 @@ def test_audit_page_lists_decisions(client, db):
     assert r.status_code == 200
     assert "resolve_approval" in r.text and "Ms. Wanjiru" in r.text
     assert client.get("/audit", params={"limit": 10, "offset": 10}).status_code == 200
+
+
+def test_audit_page_shows_verified_chain(client, db):
+    core.ingest_result(db, "tester", "L101", "quiz", "math", "Y2T1", value=70.0,
+                       detail="arithmetic quiz 3")
+    r = client.get("/audit")
+    assert r.status_code == 200
+    assert "audit chain verified" in r.text
+    assert "/audit/export.csv" in r.text
+
+
+def test_audit_export_csv(client, db):
+    import csv as _csv
+    import io as _io
+    core.ingest_result(db, "tester", "L101", "quiz", "math", "Y2T1", value=70.0,
+                       detail="arithmetic quiz 3")
+    r = client.get("/audit/export.csv")
+    assert r.status_code == 200
+    assert r.headers["content-type"].startswith("text/csv")
+    rows = list(_csv.reader(_io.StringIO(r.text)))
+    assert rows[0] == ["id", "ts", "actor", "tool", "args", "result",
+                       "prev_hash", "entry_hash"]
+    assert len(rows) >= 2
+    assert len(rows[1]) == 8
+    assert len(rows[1][7]) == 64              # sha256 hex digest
+    assert rows[1][6] == "0" * 64             # genesis prev_hash
+
+
+def test_guardian_page_hidden_until_gate_approved(client, db):
+    res = core.draft_summary(db, "test", "L100", use_llm=False)
+    sid = res["summary_id"]
+
+    # unknown summary -> 404
+    assert client.get("/guardian/4242").status_code == 404
+
+    # draft, gate even requested: page explicitly says nothing has left
+    r = client.get(f"/guardian/{sid}")
+    assert r.status_code == 200
+    assert "Nothing has left the classroom yet." in r.text
+    assert "Cleared by" not in r.text
+
+    # gate approved by a named human -> the message becomes the receipt
+    req = core.request_approval(db, "test", "share_summary", {"summary_id": sid})
+    core.resolve_approval(db, "teacher_ui", req["approval_id"], "approved",
+                          "Ms. Wanjiru", "guardian asked for it")
+    r = client.get(f"/guardian/{sid}")
+    assert r.status_code == 200
+    assert "Cleared by" in r.text and "Ms. Wanjiru" in r.text
+    assert "guardian asked for it" in r.text
+    assert "SMS segment" in r.text                       # delivery-size math shown
+    assert "quiz:Y1T1:english:reading:q1" in r.text      # citations attached
+
+    # dashboard links to it once shared
+    core.share_summary(db, "teacher_ui", sid)
+    assert f"/guardian/{sid}" in client.get("/").text
+    # and the learner page offers the same receipt
+    assert f"/guardian/{sid}" in client.get("/learner/L100").text

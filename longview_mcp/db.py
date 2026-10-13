@@ -82,14 +82,32 @@ CREATE TABLE IF NOT EXISTS approvals (
 );
 
 CREATE TABLE IF NOT EXISTS audit_log (
-  id      INTEGER PRIMARY KEY AUTOINCREMENT,
-  ts      TEXT NOT NULL,
-  actor   TEXT NOT NULL,
-  tool    TEXT NOT NULL,
-  args    TEXT NOT NULL,
-  result  TEXT NOT NULL
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  ts         TEXT NOT NULL,
+  actor      TEXT NOT NULL,
+  tool       TEXT NOT NULL,
+  args       TEXT NOT NULL,
+  result     TEXT NOT NULL,
+  prev_hash  TEXT,
+  entry_hash TEXT
 );
 """
+
+_AUDIT_HASH_COLUMNS = ("prev_hash", "entry_hash")
+
+
+def _migrate_audit_chain(conn: sqlite3.Connection) -> None:
+    """Older databases: add the hash-chain columns, then chain existing rows."""
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(audit_log)")}
+    missing = [c for c in _AUDIT_HASH_COLUMNS if c not in cols]
+    for c in missing:
+        conn.execute(f"ALTER TABLE audit_log ADD COLUMN {c} TEXT")
+    if missing:
+        conn.commit()
+    if missing or conn.execute(
+            "SELECT 1 FROM audit_log WHERE entry_hash IS NULL LIMIT 1").fetchone():
+        from . import auditchain  # local import: db.py stays dependency-light
+        auditchain.backfill(conn)
 
 
 def connect(db_path: str) -> sqlite3.Connection:
@@ -99,6 +117,7 @@ def connect(db_path: str) -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     conn.executescript(DDL)
+    _migrate_audit_chain(conn)
     return conn
 
 

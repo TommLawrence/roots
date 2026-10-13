@@ -42,7 +42,26 @@ def test_infer_skill_mapping():
     assert patterns.infer_skill("arithmetic quiz", "math") == "arithmetic"
 
 
-def test_infer_skill_refuses_to_guess_kiswahili():
-    """The E11 known failure: unrecognisable note -> unknown_skill, never a guess."""
+def test_infer_skill_kiswahili_vocabulary():
+    """Plain Kiswahili remark-book phrases map to skills (exact word match)."""
+    assert patterns.infer_skill("alikuwa anasoma vizuri", "kiswahili") == "reading"
+    assert patterns.infer_skill("anaandika insha nzuri", "kiswahili") == "writing"
+    assert patterns.infer_skill("nzuri kwa hesabu", "hisabati") == "arithmetic"
+    assert patterns.infer_skill("anapenda maumbo na jiometri", "hisabati") == "geometry"
+
+
+def test_infer_skill_recovers_typoed_kiswahili():
+    """The E11 fix: "kuosma" is a typo of "kusoma" (reading). The fuzzy token
+    pass (difflib cutoff 0.80) recovers it deterministically - no ML, no LLM."""
+    assert patterns.infer_skill("anahitaji msaada wa kuosma", "kiswahili") == "reading"
+    # the full original E11 note (also contains the exact word "sauti")
     assert patterns.infer_skill("anahitaji msaada wa kuosma kwa sauti", "kiswahili") == \
+        "reading"
+
+
+def test_infer_skill_stays_conservative_on_gibberish():
+    """The guardrail behind the E11 fix: no recognisable signal -> unknown_skill,
+    never a guess. A wrong auto-label on a child is worse than no label."""
+    assert patterns.infer_skill("anahitaji msaada sasa hivi tafadhali", "kiswahili") == \
         "unknown_skill"
+    assert patterns.infer_skill("", "kiswahili") == "unknown_skill"

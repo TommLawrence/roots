@@ -197,3 +197,43 @@ def audit_page(conn, limit=50, offset=0):
     rows = _rows(conn.execute(
         "SELECT * FROM audit_log ORDER BY id DESC LIMIT ? OFFSET ?", (limit, offset)))
     return rows, total
+
+
+# ---------------------------------------------------------------- guardian view
+
+def guardian_message(conn, summary_id: int):
+    """Everything needed to render the exact outbound guardian message.
+
+    Returns None if the summary does not exist. The view distinguishes:
+    no approved gate yet (nothing has left the classroom) vs approved/shared
+    (the message on this page is the record of what was cleared to send).
+    """
+    s = conn.execute(
+        """SELECT s.*, l.name, l.guardian FROM summaries s
+           JOIN learners l ON l.id = s.learner_id WHERE s.id=?""",
+        (summary_id,)).fetchone()
+    if not s:
+        return None
+    summary = dict(s)
+    approval_row = conn.execute(
+        """SELECT id, status, decided_by, decided_at, note FROM approvals
+           WHERE action='share_summary'
+             AND json_extract(payload, '$.summary_id')=? ORDER BY id DESC LIMIT 1""",
+        (summary_id,)).fetchone()
+    approval = dict(approval_row) if approval_row else None
+    evidence_map = json.loads(summary["evidence_map"] or "{}")
+
+    findings = []
+    for f in evidence_map.get("findings", []):
+        findings.append({**f, "evidence": evidence_by_ids(conn, f.get("evidence_ids", []))})
+    entries = []
+    for eid in evidence_map.get("profile_entry_ids", []):
+        row = conn.execute("SELECT * FROM profile_entries WHERE id=?", (eid,)).fetchone()
+        if not row:
+            continue
+        row = dict(row)
+        row["evidence"] = evidence_by_ids(conn, json.loads(row["evidence_ids"]))
+        entries.append(row)
+
+    return {"summary": summary, "approval": approval,
+            "findings": findings, "profile_entries": entries}
